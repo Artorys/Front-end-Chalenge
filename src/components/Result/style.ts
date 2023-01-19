@@ -8,4 +8,5 @@ export const StyledResultText = styled.p`
 `
 export const StyledResult = styled.p`
     color: ${(props)=> props.theme.color.sectionInfo.description};
+    margin-left : 0.3rem;
 `

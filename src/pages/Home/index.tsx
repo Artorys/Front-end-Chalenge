@@ -7,36 +7,65 @@ import { Input } from "../../components/Input";
 import { useEffect, useState } from "react";
 import * as yup from "yup"
 import {ValidationError} from "yup"
-import { Button } from "../../components/Button";
 import { ErrorMessage } from "../../components/ErrorMessage";
 import { StyledDivInput } from "../../components/Input/style";
+import { api } from "../../api";
 
 export function Home(){
     
     const valorSchema = yup.object().shape({
-        valor : yup.number().required("O Valor da venda é necessário").positive("O valor tem que ser um número válido maior que 1000").moreThan(1000,"O valor tem que ser maior que 1000").typeError("O valor tem que ser um número válido")
+        valor : yup.number().required("O Valor da venda é necessário").positive("O valor tem que ser um número válido maior que 1000").moreThan(999,"O valor tem que ser maior ou igual a 1000").typeError("O valor tem que ser um número válido")
     })
     const parcelaSchema = yup.object().shape({
         parcela : yup.number().required("O número de parcelas é necessário").positive("Mínimo de 0 parcelas e o máximo 12").lessThan(12,"Parcelado no máximo em 12 vezes").typeError("A parcela tem que ser um número válido")
     })
 
     const mdrSchema = yup.object().shape({
-        mdr : yup.number().required("A taxa mdr é necessária").typeError("A taxa mdr tem que ser um número válido"),
+        mdr : yup.number().required("A taxa mdr é necessária").lessThan(101,"A taxa mdr tem quer ser menor ou igual a 100").typeError("A taxa mdr tem que ser um número válido"),
+    })
+
+    const [result,setResult] = useState({
+        amanha : 0,
+        quinze_dias : 0,
+        trinta_dias : 0,
+        noventa_dias :0 
     })
 
     const [valor,setValor] = useState(undefined)
     const [parcela,setParcela] = useState(undefined)
-    const [mdr,setMdr] = useState(undefined)          
+    const [mdr,setMdr] = useState(undefined)       
+
     const [valorError,setValorError] = useState("")
     const [parcelaError,setParcelaError] = useState("")
     const [mdrError,setMdrError] = useState("")
+    
+    useEffect(()=>{
+        async function AnticipationResponse(){
+            try{
+                if(!valorError && !parcelaError && !mdrError){
+    
+                    const data = {amount : valor,installments : parcela,mdr : mdr}
+                    const response =  await api.post("",data)
+                    const days = response.data
+                    setResult({amanha : days[1],quinze_dias : days[15],trinta_dias : days[30], noventa_dias : days[90]})
+                }
+                else{
+                    setResult({amanha : 0,quinze_dias : 0,trinta_dias : 0,noventa_dias : 0})
+                }
+            }
+            catch(err){               
+            }
+        }
+        AnticipationResponse()
+        console.log(result)
+    },[valor,parcela,mdr,valorError,parcelaError,mdrError])
 
     return (
     <StyledDiv>
         <StyledHome>
             <StyledSectionInput>
                 <Header text="Simule sua antecipação"></Header>
-                    <StyledForm onSubmit={async(eve)=> {eve.preventDefault}}>
+                    <StyledForm>
                         <StyledInputBox>
                             <Input onChange={async (eve)=>{
                                 const value = (eve.target as HTMLInputElement).value as any
@@ -90,17 +119,16 @@ export function Home(){
                             }}   placeholder="Digite a taxa mdr" id= "mdr" type="text" textLabel="Informe o percentual de MDR *"></Input>
                             {mdrError && <ErrorMessage>{mdrError}</ErrorMessage>}
                         </StyledDivInput>
-                        <Button type="submit" text="ENVIAR"></Button>
                     </StyledForm>
             </StyledSectionInput>
             <StyledSectionInfo>
                 <Title text="VOCÊ RECEBERÁ"></Title>
                 <Line></Line>
                 <StyledResultBox>
-                    <Result resultText="Amanhã"></Result>
-                    <Result resultText="em 15 dias"></Result>
-                    <Result resultText="em 30 dias"></Result>
-                    <Result resultText="em 90 dias"></Result>
+                    <Result result={result.amanha ? result.amanha : 0} resultText="Amanhã: "></Result>
+                    <Result result={result.quinze_dias  ? result.quinze_dias : 0} resultText="em 15 dias:"></Result>
+                    <Result result={result.trinta_dias ? result.trinta_dias : 0} resultText="em 30 dias:"></Result>
+                    <Result result={result.noventa_dias ? result.noventa_dias : 0} resultText="em 90 dias:"></Result>
                 </StyledResultBox>
             </StyledSectionInfo>
         </StyledHome> 
