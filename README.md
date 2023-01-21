@@ -40,28 +40,28 @@ front-end-chalenge
 │    │     ├── Button/
 │    │     │     ├── index.tsx
 │    │     │     ├── style.ts
-│    │     ├── DescriptionInput
+│    │     ├── DescriptionInput/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── ErrorMessage
+│    │     ├── ErrorMessage/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Header
+│    │     ├── Header/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Input
+│    │     ├── Input/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Line
+│    │     ├── Line/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Loading
+│    │     ├── Loading/
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Result               
+│    │     ├── Result/            
 │    │     │      ├── index.tsx
 │    │     │      ├── style.ts
-│    │     ├── Title
+│    │     ├── Title/
 │    │           ├── index.tsx
 │    │           ├── style.ts
 │    └── App.tsx
