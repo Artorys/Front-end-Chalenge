@@ -14,6 +14,10 @@ export const StyledHome = styled.main`
     align-items: center;
     border-radius: 10px;
 
+    @media only screen and (max-width: 520px){
+        flex-direction : column
+    }
+
 `
 export const StyledSectionInput = styled.section`
     position: relative;
@@ -26,6 +30,10 @@ export const StyledSectionInput = styled.section`
     width: 50%;
     height : 100%;
     background: ${(props)=> props.theme.background.sectionInput.background};
+
+    @media only screen and (max-width: 520px){
+        width : 100%
+    }
 
 `
 export const StyledInputBox = styled.div`
@@ -49,6 +57,12 @@ export const StyledSectionInfo = styled.section`
     width: 50%;
     height : 100%;
     background: ${(props)=> props.theme.background.sectionInfo.background};
+
+    @media only screen and (max-width: 520px){
+        width : 100%
+    }
+
+    
 `
 
 export const StyledResultBox = styled.div`
