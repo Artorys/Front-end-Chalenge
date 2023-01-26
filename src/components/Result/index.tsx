@@ -11,7 +11,7 @@ export function Result(props : IResultProps){
     return (
         <StyledResultBox>
             <StyledResultText>{props.resultText}</StyledResultText>
-            {!props.result ? <Loading></Loading> : <StyledResult>{`R$${props.result},00`}</StyledResult>}
+            {!(props.result > 0) ? <Loading></Loading> : <StyledResult>{`R$${props.result},00`}</StyledResult>}
         </StyledResultBox>
     )
 }

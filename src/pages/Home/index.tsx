@@ -5,21 +5,21 @@ import { Line } from "../../components/Line";
 import { Result } from "../../components/Result";
 import { Input } from "../../components/Input";
 import { useEffect, useState } from "react";
-import {ValidationError} from "yup"
 import { ErrorMessage } from "../../components/ErrorMessage";
 import { StyledDivInput } from "../../components/Input/style";
 import { api } from "../../api";
 import { daysSchema, mdrSchema, parcelaSchema, valorSchema } from "../../schemas/home";
-
-export function Home(){
-
-interface IPersonalizeResult{
+import { SetValue } from "../../utils/Home";
+export interface IPersonalizeResult{
     [key: string] : number
 }    
 
-    const [valor,setValor] = useState(undefined)
-    const [parcela,setParcela] = useState(undefined)
-    const [mdr,setMdr] = useState(undefined)   
+export function Home(){
+
+
+    const [valor,setValor] = useState(0)
+    const [parcela,setParcela] = useState(0)
+    const [mdr,setMdr] = useState(0)   
     const [days,setDays] = useState<Array<number>>([])    
     const [result,setResult] = useState({
         amanha : 0,quinze_dias : 0,trinta_dias : 0, noventa_dias : 0
@@ -34,8 +34,8 @@ interface IPersonalizeResult{
     useEffect(()=>{
         async function AnticipationResponse(){
             try{
-                if(!valorError && !parcelaError&& !mdrError && !daysError){
-                    if(valor && parcela && mdr && days){
+                if((valor || parcela || mdr)){
+                    if((!valorError && !parcelaError && !mdrError) && (days && days.length > 0)){
                         const data = {amount : valor,installments : parcela,mdr : mdr,days : days}
                         const response =  await api.post("",data)
                         const daysData = response.data
@@ -45,20 +45,23 @@ interface IPersonalizeResult{
                         }
                         setPersonalizeResult(personalizeDays)
                     }
-                    if(valor && parcela && mdr)
-                    {
+                    else{
+                        setPersonalizeResult([{}])
+                    }
+                    if((!valorError && !parcelaError && !mdrError)){
                         const data = {amount : valor,installments : parcela,mdr : mdr}
                         const response =  await api.post("",data)
                         const daysData = response.data
-                        setResult({amanha : daysData[1],quinze_dias : daysData[15],trinta_dias : daysData[30], noventa_dias : daysData[90]})
+                        setResult({amanha : daysData[1],quinze_dias : daysData[15],trinta_dias : daysData[30], noventa_dias : daysData[90]})   
+                    }
+                    else{
+                        console.log("salve")
+                        setResult({amanha : 0,quinze_dias : 0,trinta_dias : 0,noventa_dias : 0})
                     }
                 }
-                else{
-                    setPersonalizeResult([{}])
-                    setResult({amanha : 0,quinze_dias : 0,trinta_dias : 0,noventa_dias : 0})
-                }
             }
-            catch(err){               
+            catch(err){
+                            
             }
         }
         AnticipationResponse()
@@ -72,54 +75,23 @@ interface IPersonalizeResult{
                     <StyledForm>
                         <StyledInputBox>
                             <Input onChange={async (eve)=>{
-                                const value = (eve.target as HTMLInputElement).value as any
-                                try{
-                                    const data = {valor : value}
-                                    await valorSchema.validate(data,{abortEarly : false,stripUnknown : true})  
-                                    setValor(value)
-                                    setValorError("")
-                                }
-                                catch(err){
-                                    if(err instanceof ValidationError){
-                                        setValorError(err.message)
-                                    }
-                                }
-                                        
-                                
+                                const value = (eve.target as HTMLInputElement).value
+                                SetValue({setState: setValor,setErrorState : setValorError,schema : valorSchema,type : "valor" , value : value})
+                                    
                                 }} placeholder="Digite o valor" id="valor" type="text" textLabel="Informe o valor da venda *"></Input>
                                 {valorError && <ErrorMessage>{valorError}</ErrorMessage>}
                         </StyledInputBox>
                         <StyledInputBox>
                             <Input onChange={async(eve)=>{
-                                const value = (eve.target as HTMLInputElement).value as any
-                                try{
-                                    const data = {parcela : value}
-                                    await parcelaSchema.validate(data,{abortEarly : false,stripUnknown : true})  
-                                    setParcela(value)
-                                    setParcelaError("")
-                                }
-                                catch(err){
-                                    if(err instanceof ValidationError){
-                                        setParcelaError(err.message)
-                                    }
-                                }
+                                const value = (eve.target as HTMLInputElement).value
+                                SetValue({setState: setParcela,setErrorState : setParcelaError,schema : parcelaSchema,type : "parcela" , value : value})
                             }} placeholder="Digite as parcelas" id= "parcelas"type="text" textLabel="Em quantas parcelas *"></Input>
                             {parcelaError && <ErrorMessage>{parcelaError}</ErrorMessage>}
                         </StyledInputBox>
                         <StyledDivInput>
                             <Input onChange={async(eve)=>{
-                                const value = (eve.target as HTMLInputElement).value as any
-                                try{
-                                    const data = {mdr : value}
-                                    await mdrSchema.validate(data,{abortEarly : false,stripUnknown : true})  
-                                    setMdr(value)
-                                    setMdrError("")
-                                }
-                                catch(err){
-                                    if(err instanceof ValidationError){
-                                        setMdrError(err.message)
-                                    }
-                                }
+                                const value = (eve.target as HTMLInputElement).value
+                                SetValue({setState: setMdr,setErrorState : setMdrError,schema : mdrSchema,type : "mdr" , value : value})
                             }}   placeholder="Digite a taxa mdr" id= "mdr" type="text" textLabel="Informe o percentual de MDR *"></Input>
                             {mdrError && <ErrorMessage>{mdrError}</ErrorMessage>}
                         </StyledDivInput>
@@ -129,33 +101,14 @@ interface IPersonalizeResult{
             <StyledDivInput>
                 <Input onChange={async(eve)=>{
                     const value = (eve.target as HTMLInputElement).value
-                    try{
-                        const daysMatched = value.match(/(^[0-9]+)|(,[0-9]+)|(, [0-9]+)|( [0-9]+)/g)
-                        if(!daysMatched){
-                            setDaysError("Digite números separados por vírgula ou espaçados")
-                        }
-                        const formattedDays = daysMatched?.map((day)=>{
-                            let formatted = day.replace(",","")
-                            formatted = formatted.trim()
-                            return Number(formatted)
-                        }) as number[]
-                        const schema = await daysSchema.validate(formattedDays,{stripUnknown : true,abortEarly : false})
-                        console.log(schema)
-                        setDays(formattedDays)
-                        setDaysError("")
-                    }
-                    catch(err){
-                        if(err instanceof ValidationError){
-                            setDaysError(err.message)
-                        }
-                    }
+                    SetValue({setErrorState : setDaysError,schema : daysSchema,type : "days" , value : value,setArrayState : setDays})
                 }}   placeholder="virgula ou espaçado" id= "dias" type="text" textLabel="Informe os dias * opcional"></Input>
                 {daysError && <ErrorMessage>{daysError}</ErrorMessage>}
             </StyledDivInput>
                 <Title text="VOCÊ RECEBERÁ"></Title>
                 <Line></Line>
                 <StyledResultBox>
-                    {Object.keys(personalizeResult[0]).length != 0 ? personalizeResult.map((result,index)=>{
+                    {Object.keys(personalizeResult[0]).length > 0 ? personalizeResult.map((result,index)=>{
                         if(index < 4){
                             const key = Object.keys(result)[0]
                             const value = Object.values(result)[0]
